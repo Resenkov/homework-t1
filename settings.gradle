@@ -1,0 +1,2 @@
+rootProject.name = 'homework-t1'
+includeBuild('t1-business')
