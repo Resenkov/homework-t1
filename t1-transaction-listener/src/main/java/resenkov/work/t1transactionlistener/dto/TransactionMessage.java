@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransactionMessage {
-
     private Long transactionId;
     private Long accountId;
     private Long clientId;

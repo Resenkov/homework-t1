@@ -3,11 +3,14 @@ package resenkov.work.t1business.generate;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import resenkov.work.t1business.aop.LogDataError;
+import resenkov.work.t1business.aop.Metric;
 import resenkov.work.t1business.dto.TransactionMessage;
 import resenkov.work.t1business.entity.Account;
 import resenkov.work.t1business.entity.Client;
@@ -19,12 +22,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * DataInitializer теперь выполняет два шага:
- * 1) Заполняет БД тестовыми клиентами и счетами (в том числе с статусом OPEN).
- * 2) Генерирует несколько входящих транзакций (TransactionMessage) и отправляет их в Kafka-топик t1_demo_transactions.
- */
+@Slf4j
 @Component
+@Transactional
 public class DataInitializer {
 
     private final ClientRepository clientRepository;
@@ -33,7 +33,6 @@ public class DataInitializer {
     private final ObjectMapper objectMapper;
     private final Random random;
 
-    // Название топика для входящих транзакций
     private static final String INCOMING_TOPIC = "t1_demo_transactions";
 
     @Autowired
@@ -48,8 +47,9 @@ public class DataInitializer {
         this.random = new Random();
     }
 
+    @LogDataError
+    @Metric
     @PostConstruct
-    @Transactional
     public void initTestData() {
         List<Client> clients = createAndSaveClients();
         List<Account> allAccounts = createAndSaveAccountsForClients(clients);
@@ -59,12 +59,11 @@ public class DataInitializer {
                 .collect(Collectors.toList());
 
         if (!openAccounts.isEmpty()) {
-            sendTestTransactionsToKafka(openAccounts, /*количество тестовых транзакций на счёт*/ 2);
+            sendTestTransactionsToKafka(openAccounts, 2);
         }
     }
 
-    // --------------------- 1. Создание клиентов и счетов ---------------------
-
+    @LogDataError
     private List<Client> createAndSaveClients() {
         List<Client> clients = new ArrayList<>();
 
@@ -77,10 +76,9 @@ public class DataInitializer {
             client.setFirstName(firstNames[i]);
             client.setLastName(lastNames[i]);
             client.setMiddleName(middleNames[i]);
-            client.setClientId(null); // заполним после save()
+            client.setClientId(null);
 
             clientRepository.save(client);
-            // После save() автоматически заполнится поле client.id
             client.setClientId(client.getId());
             clientRepository.save(client);
 
@@ -89,15 +87,16 @@ public class DataInitializer {
         return clients;
     }
 
+    @LogDataError
+    @Metric
     private List<Account> createAndSaveAccountsForClients(List<Client> clients) {
         List<Account> allAccounts = new ArrayList<>();
 
         for (Client client : clients) {
-            // создаём 1 счёт со статусом OPEN
             Account accountOpen = new Account();
             accountOpen.setClient(client);
             accountOpen.setStatus(Account.Status.OPEN);
-            accountOpen.setAccountId(null); // заполним после save()
+            accountOpen.setAccountId(null);
             accountOpen.setBalanceType(randomBalanceType());
             accountOpen.setBalance(randomInitialBalance());
             accountOpen.setFrozenAmount(BigDecimal.ZERO);
@@ -107,7 +106,6 @@ public class DataInitializer {
             accountRepository.save(accountOpen);
             allAccounts.add(accountOpen);
 
-            // создаём 1 «дополнительный» счёт с любым статусом, кроме OPEN
             Account accountNonOpen = new Account();
             accountNonOpen.setClient(client);
             accountNonOpen.setStatus(randomNonOpenStatus());
@@ -145,18 +143,16 @@ public class DataInitializer {
         return nonOpen.get(random.nextInt(nonOpen.size()));
     }
 
+    @LogDataError
     private void sendTestTransactionsToKafka(List<Account> openAccounts, int txPerAccount) {
-        long baseTxId = System.currentTimeMillis(); // базовый номер для transactionId, чтобы не дублировать
-
+        long baseTxId = System.currentTimeMillis();
         for (Account account : openAccounts) {
             Long accountId = account.getAccountId();
             Long clientId = account.getClient().getClientId();
 
             for (int i = 0; i < txPerAccount; i++) {
                 BigDecimal amount = randomTransactionAmount();
-
                 Long transactionId = baseTxId + accountId * 100 + i;
-
                 TransactionMessage msg = new TransactionMessage(
                         transactionId,
                         accountId,
@@ -165,13 +161,11 @@ public class DataInitializer {
                         LocalDateTime.now()
                 );
 
-                // Сериализуем в JSON и отправляем в Kafka
                 try {
                     String json = objectMapper.writeValueAsString(msg);
                     kafkaTemplate.send(INCOMING_TOPIC, json);
-                    System.out.printf("Отправлена тестовая транзакция в Kafka: %s%n", json);
+                    log.info("Отправлено сообщение в топик " + INCOMING_TOPIC + "{}", json);
                 } catch (JsonProcessingException e) {
-                    // В реальном приложении логгируйте через Logger, а не printStackTrace
                     e.printStackTrace();
                 }
             }
@@ -179,7 +173,6 @@ public class DataInitializer {
     }
 
     private BigDecimal randomTransactionAmount() {
-        // генерируем сумму случайно от 10 до 10 000, с копейками
         double amt = 10 + random.nextDouble() * (10_000 - 10);
         return BigDecimal.valueOf(amt).setScale(2, BigDecimal.ROUND_HALF_UP);
     }

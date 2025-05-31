@@ -2,23 +2,25 @@ package resenkov.work.t1transactionlistener.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import resenkov.work.t1business.entity.Account;
+import resenkov.work.t1business.entity.Transaction;
 import resenkov.work.t1business.repository.AccountRepository;
 import resenkov.work.t1business.repository.TransactionRepository;
 import resenkov.work.t1transactionlistener.dto.AcceptedTransactionMessage;
 import resenkov.work.t1transactionlistener.dto.TransactionMessage;
-import resenkov.work.t1business.entity.Account;
-import resenkov.work.t1business.entity.Transaction;
-import resenkov.work.t1business.entity.Transaction.Status;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class TransactionListenerService {
 
@@ -27,10 +29,9 @@ public class TransactionListenerService {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
-    // Топик, в который отправляем подтверждения
     private static final String ACCEPT_TOPIC = "t1_demo_transaction_accept";
 
-    @Autowired
+
     public TransactionListenerService(
             AccountRepository accountRepository,
             TransactionRepository transactionRepository,
@@ -47,6 +48,7 @@ public class TransactionListenerService {
             groupId = "transaction-processor",
             containerFactory = "kafkaListenerContainerFactory"
     )
+
     @Transactional
     public void listen(TransactionMessage txMsg) {
         Long incomingAccountId = txMsg.getAccountId();
@@ -59,27 +61,21 @@ public class TransactionListenerService {
                 accountRepository.findByAccountId(incomingAccountId)
         );
         if (optionalAccount.isEmpty()) {
-            System.err.printf(
-                    "[WARN] Не найден аккаунт с accountId=%d. Транзакция txId=%d проигнорирована.%n",
-                    incomingAccountId, incomingTxId
-            );
+            log.warn("Не найден аккаунт с " + incomingAccountId + ". Транзакция " + incomingTxId + " проигнорирована");
             return;
         }
 
         Account account = optionalAccount.get();
 
         if (!Account.Status.OPEN.equals(account.getStatus())) {
-            System.out.printf(
-                    "[INFO ] Account(accountId=%d) status=%s, txId=%d проигнорирована.%n",
-                    incomingAccountId, account.getStatus(), incomingTxId
-            );
+            log.warn("Транзакция %d проигнорирована! Статус аккаунта %d не является OPEN!");
             return;
         }
 
         Transaction trx = new Transaction();
         trx.setTranscationId(incomingTxId);
         trx.setAccount(account);
-        trx.setStatus(Status.REQUESTED);
+        trx.setStatus(Transaction.Status.REQUESTED);
         trx.setSum(amount);
         transactionRepository.save(trx);
 
