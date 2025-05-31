@@ -50,5 +50,3 @@ public class Account {
 
     private BigDecimal frozenAmount;
 }
-
-

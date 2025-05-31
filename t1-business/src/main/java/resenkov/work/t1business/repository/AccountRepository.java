@@ -6,4 +6,5 @@ import resenkov.work.t1business.entity.Account;
 
 @Repository
 public interface AccountRepository extends JpaRepository<Account, Long> {
+    Account findByAccountId(Long userId);
 }

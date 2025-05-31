@@ -22,24 +22,33 @@ public class KafkaConfiguration {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
-    // Для String сообщений
-    @Bean
-    public ProducerFactory<String, String> stringProducerFactory() {
-        Map<String, Object> configProps = new HashMap<>();
-        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        return new DefaultKafkaProducerFactory<>(configProps);
+    private Map<String, Object> baseConfig() {
+        Map<String, Object> config = new HashMap<>();
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ProducerConfig.RETRIES_CONFIG, 3);
+        config.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, 1000);
+        config.put(ProducerConfig.RECONNECT_BACKOFF_MS_CONFIG, 10000);
+        config.put(ProducerConfig.RECONNECT_BACKOFF_MAX_MS_CONFIG, 30000);
+        config.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 30000);
+        config.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 60000);
+        config.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 10000);
+        return config;
     }
 
-    // Для Transaction сообщений
+    @Bean
+    public ProducerFactory<String, String> stringProducerFactory() {
+        Map<String, Object> config = baseConfig();
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        return new DefaultKafkaProducerFactory<>(config);
+    }
+
     @Bean
     public ProducerFactory<String, Transaction> transactionProducerFactory() {
-        Map<String, Object> configProps = new HashMap<>();
-        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        return new DefaultKafkaProducerFactory<>(configProps);
+        Map<String, Object> config = baseConfig();
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        return new DefaultKafkaProducerFactory<>(config);
     }
 
     @Bean(name = "stringKafkaTemplate")
