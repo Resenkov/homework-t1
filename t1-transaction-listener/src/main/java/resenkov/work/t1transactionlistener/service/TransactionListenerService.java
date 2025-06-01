@@ -115,16 +115,41 @@ public class TransactionListenerService {
             groupId = "transaction-result-processor",
             containerFactory = "kafkaListenerContainerFactory")
     @Transactional
-    public void updateAfter(TransactionMessage message){
+    public void updateAfter(TransactionMessage message) {
         Long transactionId = message.getTransactionId();
+        Long accountId = message.getAccountId();
 
-        Optional<Transaction> resulttx = Optional.
-                ofNullable(transactionRepository.findByTranscationId(transactionId));
+        Optional<Transaction> resulttx = Optional.ofNullable(
+                transactionRepository.findByTranscationId(transactionId)
+        );
+
+        Optional<Account> checkAccount = accountRepository.findByAccountId(accountId);
+        if (resulttx.isEmpty() || checkAccount.isEmpty()) {
+            log.warn("Транзакция в сообщении не найдена: {}", message);
+            return;
+        }
 
         Transaction transaction = resulttx.get();
-        if (message.getStatus().equals(Transaction.Status.ACCEPTED)){
-            transaction.setStatus(Transaction.Status.ACCEPTED);
-            transactionRepository.save(transaction);
+        Account account = checkAccount.get();
+
+        transaction.setStatus(message.getStatus());
+
+        switch (message.getStatus()) {
+            case ACCEPTED -> {
+            }
+            case BLOCKED -> {
+                account.setStatus(Account.Status.BLOCKED);
+                account.setFrozenAmount(account.getFrozenAmount().add(transaction.getSum()));
+                account.setBalance(account.getBalance().subtract(transaction.getSum()));
+                accountRepository.save(account);
+            }
+            case REJECTED -> {
+                account.setBalance(account.getBalance().subtract(transaction.getSum()));
+                accountRepository.save(account);
+            }
         }
+
+        transactionRepository.save(transaction);
+        log.info("Обновлена транзакция {} со статусом {}", transactionId, message.getStatus());
     }
 }

@@ -18,8 +18,7 @@ import resenkov.work.t1business.repository.ClientRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+
 
 @Slf4j
 @Component
@@ -31,7 +30,6 @@ public class DataInitializer {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
     private final TransactionCheckProperties props;
-    private final Random random;
 
     private static final String INCOMING_TOPIC = "t1_demo_transactions";
 
@@ -48,126 +46,112 @@ public class DataInitializer {
         this.kafkaTemplate = stringKafkaTemplate;
         this.objectMapper = objectMapper;
         this.props = props;
-        this.random = new Random();
     }
 
     @PostConstruct
     public void initTestData() {
-        // 1) Создаем клиентов и счета
-        List<Client> clients = createAndSaveClients();
-        List<Account> allAccounts = createAndSaveAccountsForClients(clients);
-
-        // 2) Фильтруем только открытые счета
-        List<Account> openAccounts = allAccounts.stream()
-                .filter(a -> Account.Status.OPEN.equals(a.getStatus()))
-                .collect(Collectors.toList());
-
-        if (!openAccounts.isEmpty()) {
-            sendTestTransactionsToKafka(openAccounts);
-        }
-    }
-
-    private List<Client> createAndSaveClients() {
-        List<Client> clients = new ArrayList<>();
-        String[] firstNames = { "Иван", "Мария", "Пётр", "Елена", "Алексей", "Ольга" };
-        String[] lastNames  = { "Иванов", "Петрова", "Сидоров", "Смирнова", "Кузнецов", "Попова" };
-        String[] middleNames = { "Александрович", "Сергеевна", "Николаевич", "Павловна", "Игоревич", "Дмитриевна" };
-
-        for (int i = 0; i < firstNames.length; i++) {
+        for (int i = 1; i <= 3; i++) {
             Client client = new Client();
-            client.setFirstName(firstNames[i]);
-            client.setLastName(lastNames[i]);
-            client.setMiddleName(middleNames[i]);
-
+            client.setFirstName("Клиент" + i);
+            client.setLastName("Тестович");
+            client.setMiddleName("Демо");
             client = clientRepository.save(client);
-
             client.setClientId(client.getId());
-            client = clientRepository.save(client);
+            clientRepository.save(client);
 
-            clients.add(client);
+            // ACCEPTED
+            Account accAccepted = createAccount(client, Account.Status.OPEN, 1000);
+            sendAcceptedTransaction(accAccepted, client);
+
+            // REJECTED
+            Account accRejected = createAccount(client, Account.Status.OPEN, 20);
+            sendRejectedTransaction(accRejected, client);
+
+            // BLOCKED
+            Account accBlocked = createAccount(client, Account.Status.OPEN, 0);
+            sendBlockedTransactions(accBlocked, client);
+
+            // IGNORED
+            Account accClosed = createAccount(client, Account.Status.CLOSED, 500);
+            sendIgnoredTransaction(accClosed, client);
         }
-        return clients;
+
+        // Несуществующий счёт
+        sendAccountNotFoundTransaction();
     }
 
-    private List<Account> createAndSaveAccountsForClients(List<Client> clients) {
-        List<Account> allAccounts = new ArrayList<>();
-        for (Client client : clients) {
-            // один счет OPEN
-            Account accountOpen = new Account();
-            accountOpen.setClient(client);
-            accountOpen.setStatus(Account.Status.OPEN);
-            accountOpen.setBalanceType(randomBalanceType());
-            accountOpen.setBalance(randomInitialBalance());
-            accountOpen.setFrozenAmount(BigDecimal.ZERO);
-            accountOpen = accountRepository.save(accountOpen);
-            accountOpen.setAccountId(accountOpen.getId());
-            accountRepository.save(accountOpen);
-            allAccounts.add(accountOpen);
+    private Account createAccount(Client client, Account.Status status, double balance) {
+        Account acc = new Account();
+        acc.setClient(client);
+        acc.setStatus(status);
+        acc.setBalanceType(Account.BalanceType.DEBIT);
+        acc.setBalance(BigDecimal.valueOf(balance).setScale(2));
+        acc.setFrozenAmount(BigDecimal.ZERO);
+        acc = accountRepository.save(acc);
+        acc.setAccountId(acc.getId());
+        return accountRepository.save(acc);
+    }
 
-            // один счет НЕ OPEN
-            Account accountNonOpen = new Account();
-            accountNonOpen.setClient(client);
-            accountNonOpen.setStatus(randomNonOpenStatus());
-            accountNonOpen.setBalanceType(randomBalanceType());
-            accountNonOpen.setBalance(randomInitialBalance());
-            accountNonOpen.setFrozenAmount(BigDecimal.ZERO);
-            accountNonOpen = accountRepository.save(accountNonOpen);
-            accountNonOpen.setAccountId(accountNonOpen.getId());
-            accountRepository.save(accountNonOpen);
-            allAccounts.add(accountNonOpen);
+
+    /**
+     * 1) Отправка одной транзакции, которая будет принята (ACCEPTED).
+     */
+    private void sendAcceptedTransaction(Account account, Client client) {
+        Long txId = System.currentTimeMillis() + account.getAccountId() * 10;
+        BigDecimal amount = BigDecimal.valueOf(100).setScale(2, BigDecimal.ROUND_HALF_UP);
+        log.info("=== Отправляем ACCEPTED транзакцию: txId={}, accountId={}, clientId={}, amount={}",
+                txId, account.getAccountId(), client.getClientId(), amount);
+        sendTransactionMessage(txId, account.getAccountId(), client.getClientId(), amount);
+    }
+
+    /**
+     * 2) Отправка одной транзакции, сумма которой превышает баланс — будет REJECTED.
+     */
+    private void sendRejectedTransaction(Account account, Client client) {
+        Long txId = System.currentTimeMillis() + account.getAccountId() * 20;
+        BigDecimal amount = account.getBalance().add(BigDecimal.valueOf(-50000)); // Явное сильное превышение
+        log.info("=== Отправляем REJECTED транзакцию: txId={}, accountId={}, clientId={}, amount={}",
+                txId, account.getAccountId(), client.getClientId(), amount);
+        sendTransactionMessage(txId, account.getAccountId(), client.getClientId(), amount);
+    }
+
+
+    /**
+     * 3) Отправка нескольких транзакций подряд по одному и тому же счету,
+     * чтобы превысить допустимое количество (props.getMaxTx()) и получить BLOCKED.
+     * Все суммы будут небольшими, чтобы баланс не стал отрицательным раньше.
+     */
+    private void sendBlockedTransactions(Account account, Client client) {
+        int maxTx = props.getMaxTx();
+        log.info("=== Отправляем {}+1 транзакций, чтобы получить BLOCKED (accountId={}, clientId={})", maxTx, account.getAccountId(), client.getClientId());
+        for (int i = 0; i < maxTx + 1; i++) {
+            Long txId = System.currentTimeMillis() + account.getAccountId() * 100 + i;
+            BigDecimal smallAmount = BigDecimal.valueOf(1).setScale(2, BigDecimal.ROUND_HALF_UP);
+            sendTransactionMessage(txId, account.getAccountId(), client.getClientId(), smallAmount);
+            sleepMillis(100);
         }
-        return allAccounts;
     }
 
-    private Account.BalanceType randomBalanceType() {
-        Account.BalanceType[] types = Account.BalanceType.values();
-        return types[random.nextInt(types.length)];
+    /**
+     * 4) Отправка транзакции по закрытому счету — будет проигнорировано (Account not OPEN).
+     */
+    private void sendIgnoredTransaction(Account account, Client client) {
+        Long txId = System.currentTimeMillis() + account.getAccountId() * 30;
+        BigDecimal amount = BigDecimal.valueOf(50).setScale(2, BigDecimal.ROUND_HALF_UP);
+        log.info("=== Отправляем IGNORED транзакцию (счет CLOSED): txId={}, accountId={}, clientId={}, amount={}",
+                txId, account.getAccountId(), client.getClientId(), amount);
+        sendTransactionMessage(txId, account.getAccountId(), client.getClientId(), amount);
     }
 
-    private BigDecimal randomInitialBalance() {
-        double amount = random.nextDouble() * 100_000;
-        return BigDecimal.valueOf(amount).setScale(2, BigDecimal.ROUND_HALF_UP);
-    }
-
-    private Account.Status randomNonOpenStatus() {
-        List<Account.Status> nonOpen = new ArrayList<>();
-        for (Account.Status s : Account.Status.values()) {
-            if (s != Account.Status.OPEN) {
-                nonOpen.add(s);
-            }
-        }
-        return nonOpen.get(random.nextInt(nonOpen.size()));
-    }
-
-    private void sendTestTransactionsToKafka(List<Account> openAccounts) {
-        long baseTxId = System.currentTimeMillis();
-
-        for (Account account : openAccounts) {
-            Long accountId = account.getAccountId();
-            Long clientId = account.getClient().getClientId();
-
-            // 1) N+1 мелких транзакций, чтобы Service2 заблокировал последние N
-            int maxTx = props.getMaxTx();
-            for (int i = 0; i < maxTx + 1; i++) {
-                BigDecimal smallAmount = BigDecimal.valueOf(10 + random.nextDouble() * 90).setScale(2, BigDecimal.ROUND_HALF_UP);
-                Long txId = baseTxId + accountId * 100 + i;
-                sendTransactionMessage(txId, accountId, clientId, smallAmount);
-                sleepMillis(200); // небольшая пауза, чтобы timestamps отличались
-            }
-
-            // 2) Транзакция с amount > balance для REJECTED
-            BigDecimal tooBig = account.getBalance().add(BigDecimal.valueOf(1_000));
-            long txIdReject = baseTxId + accountId * 100 + maxTx + 10;
-            sendTransactionMessage(txIdReject, accountId, clientId, tooBig);
-
-            // 3) Несколько обычных транзакций для ACCEPTED (баланс уменьшится)
-            for (int i = 0; i < 2; i++) {
-                BigDecimal okAmount = BigDecimal.valueOf(1 + random.nextDouble() * 50).setScale(2, BigDecimal.ROUND_HALF_UP);
-                Long txIdOk = baseTxId + accountId * 100 + maxTx + 20 + i;
-                sendTransactionMessage(txIdOk, accountId, clientId, okAmount);
-                sleepMillis(200);
-            }
-        }
+    /**
+     * 5) Отправка транзакции по несуществующему счету — будет игнор (Account not found).
+     */
+    private void sendAccountNotFoundTransaction() {
+        Long fakeAccountId = 999_999L;
+        Long txId = System.currentTimeMillis() + fakeAccountId;
+        BigDecimal amount = BigDecimal.valueOf(10).setScale(2, BigDecimal.ROUND_HALF_UP);
+        log.info("=== Отправляем транзакцию с несуществующим accountId={}, txId={}", fakeAccountId, txId);
+        sendTransactionMessage(txId, fakeAccountId, 1L, amount);
     }
 
     private void sendTransactionMessage(Long txId, Long accountId, Long clientId, BigDecimal amount) {
@@ -186,11 +170,7 @@ public class DataInitializer {
     private void sleepMillis(long ms) {
         try {
             Thread.sleep(ms);
-        } catch (InterruptedException ignored) {}
-    }
-
-    private BigDecimal randomTransactionAmount() {
-        double amt = 10 + random.nextDouble() * (10_000 - 10);
-        return BigDecimal.valueOf(amt).setScale(2, BigDecimal.ROUND_HALF_UP);
+        } catch (InterruptedException ignored) {
+        }
     }
 }
