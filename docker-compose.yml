@@ -19,16 +19,37 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: nc -z localhost 9092
+      interval: 5s
+      timeout: 5s
+      retries: 15
 
-  topic-init:
+  kafka-setup:
     image: confluentinc/cp-kafka:latest
     depends_on:
-      - kafka
-    entrypoint: ["/bin/sh", "-c"]
+      kafka:
+        condition: service_healthy
+    entrypoint: [ '/bin/sh', '-c' ]
     command: |
-      kafka-topics --create --topic t1_demo_transactions --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1 && \
-      kafka-topics --create --topic t1_demo_transaction_accept --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1 && \
-      kafka-topics --create --topic t1_demo_transaction_result --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1 && \
-      kafka-topics --create --topic t1_demo_metrics --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1 && \
-      echo 'All topics created.'
-      "
+      "echo 'Waiting for Kafka...';
+       while ! nc -z kafka 9092; do sleep 1; done;
+       kafka-topics --bootstrap-server kafka:9092 --create --topic t1_demo_transactions --partitions 1 --replication-factor 1
+       kafka-topics --bootstrap-server kafka:9092 --create --topic t1_demo_transaction_accept --partitions 1 --replication-factor 1
+       kafka-topics --bootstrap-server kafka:9092 --create --topic t1_demo_metrics --partitions 1 --replication-factor 1
+       kafka-topics --bootstrap-server kafka:9092 --create --topic t1_demo_transaction_result --partitions 1 --replication-factor 1
+       echo 'Topics created successfully'"
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: t1_task4
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 2611
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:
