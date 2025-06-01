@@ -1,28 +1,3 @@
-DO $$
-DECLARE
-    r RECORD;
-BEGIN
-    SET session_replication_role = replica;
-
-    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = current_schema())
-    LOOP
-        EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
-    END LOOP;
-
-    FOR r IN (SELECT typname FROM pg_type WHERE typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema()))
-    LOOP
-        EXECUTE 'DROP TYPE IF EXISTS ' || quote_ident(r.typname) || ' CASCADE';
-    END LOOP;
-
-    FOR r IN (SELECT sequence_name FROM information_schema.sequences WHERE sequence_schema = current_schema())
-    LOOP
-        EXECUTE 'DROP SEQUENCE IF EXISTS ' || quote_ident(r.sequence_name) || ' CASCADE';
-    END LOOP;
-
-    SET session_replication_role = DEFAULT;
-END $$;
-
-
 CREATE TYPE account_status AS ENUM ('ARRESTED', 'BLOCKED', 'CLOSED', 'OPEN');
 CREATE TYPE account_balance_type AS ENUM ('DEBIT', 'CREDIT');
 CREATE TYPE transaction_status AS ENUM ('ACCEPTED', 'REJECTED', 'BLOCKED', 'CANCELLED', 'REQUESTED');
@@ -76,3 +51,6 @@ CREATE INDEX idx_account_client_id ON account(client_id);
 CREATE INDEX idx_transaction_account_id ON transaction(account_id);
 CREATE INDEX idx_transaction_status ON transaction(status);
 CREATE INDEX idx_transaction_created_at ON transaction(created_at);
+
+UPDATE client SET client_id = id;
+UPDATE account SET account_id = id;

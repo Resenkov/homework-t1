@@ -26,13 +26,10 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "transaction-processor");
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        // Убираем строку: props.put(JsonDeserializer.TRUSTED_PACKAGES, "resenkov.work.t1transactionlistener.dto");
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
 
-        // Создаём JsonDeserializer, указывая целевой класс и отключая type headers
         JsonDeserializer<TransactionMessage> valueDeserializer =
                 new JsonDeserializer<>(TransactionMessage.class, objectMapper, false);
-        // Явно задаём, из каких пакетов разрешена десериализация
         valueDeserializer.addTrustedPackages("resenkov.work.t1transactionlistener.dto");
 
         return new DefaultKafkaConsumerFactory<>(

@@ -3,7 +3,6 @@ package resenkov.work.t1transactionlistener.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -12,7 +11,6 @@ import resenkov.work.t1business.entity.Account;
 import resenkov.work.t1business.entity.Transaction;
 import resenkov.work.t1business.repository.AccountRepository;
 import resenkov.work.t1business.repository.TransactionRepository;
-import resenkov.work.t1transactionlistener.dto.AcceptedTransactionMessage;
 import resenkov.work.t1transactionlistener.dto.TransactionMessage;
 
 
@@ -48,7 +46,6 @@ public class TransactionListenerService {
             groupId = "transaction-processor",
             containerFactory = "kafkaListenerContainerFactory"
     )
-
     @Transactional
     public void listen(TransactionMessage txMsg) {
         Long incomingAccountId = txMsg.getAccountId();
@@ -57,18 +54,30 @@ public class TransactionListenerService {
         Long incomingTxId = txMsg.getTransactionId();
         LocalDateTime messageTime = txMsg.getTimestamp();
 
-        Optional<Account> optionalAccount = Optional.ofNullable(
-                accountRepository.findByAccountId(incomingAccountId)
-        );
+        Optional<Account> optionalAccount = accountRepository.findByAccountId(incomingAccountId);
         if (optionalAccount.isEmpty()) {
-            log.warn("Не найден аккаунт с " + incomingAccountId + ". Транзакция " + incomingTxId + " проигнорирована");
+            log.warn("Аккаунт не найден: {}. Транзакция {} проигнорирована",
+                    incomingAccountId, incomingTxId);
             return;
         }
 
         Account account = optionalAccount.get();
 
+
+        if (account.getClient().getClientId() == null) {
+            log.error("Не удалось получить ID клиента для этого аккаунта: {}", incomingAccountId);
+            return;
+        }
+
+        if (!account.getClient().getClientId().equals(incomingClientId)) {
+            log.warn("Учетная запись {} не принадлежит клиенту {}. Транзакция {} проигнорирована",
+                    incomingAccountId, incomingClientId, incomingTxId);
+            return;
+        }
+
         if (!Account.Status.OPEN.equals(account.getStatus())) {
-            log.warn("Транзакция %d проигнорирована! Статус аккаунта %d не является OPEN!");
+            log.warn("Статус счета {} не OPEN. Транзакция {} проигнорирована",
+                    incomingAccountId, incomingTxId);
             return;
         }
 
@@ -79,30 +88,43 @@ public class TransactionListenerService {
         trx.setSum(amount);
         transactionRepository.save(trx);
 
-        BigDecimal oldBalance = (account.getBalance() == null)
-                ? BigDecimal.ZERO
-                : account.getBalance();
+        BigDecimal oldBalance = Optional.ofNullable(account.getBalance())
+                .orElse(BigDecimal.ZERO);
         BigDecimal newBalance = oldBalance.add(amount);
         account.setBalance(newBalance);
         accountRepository.save(account);
 
-        AcceptedTransactionMessage acceptedMsg = new AcceptedTransactionMessage(
-                incomingClientId,
-                incomingAccountId,
+        TransactionMessage acceptedMsg = new TransactionMessage(
                 incomingTxId,
-                messageTime,
+                incomingAccountId,
+                incomingClientId,
                 amount,
-                newBalance
+                Transaction.Status.REQUESTED,
+                messageTime
         );
         try {
             String json = objectMapper.writeValueAsString(acceptedMsg);
             kafkaTemplate.send(ACCEPT_TOPIC, json);
-            System.out.printf(
-                    "[INFO ] Отправлено подтверждение txId=%d, accountId=%d, новый баланс=%s%n",
-                    incomingTxId, incomingAccountId, newBalance
-            );
+            log.info("Транзакция {} принята и переадресована", incomingTxId);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            log.error("Не удалось сериализовать транзакцию: {}", incomingTxId, e);
+        }
+    }
+
+    @KafkaListener(topics = "t1_demo_transaction_result",
+            groupId = "transaction-result-processor",
+            containerFactory = "kafkaListenerContainerFactory")
+    @Transactional
+    public void updateAfter(TransactionMessage message){
+        Long transactionId = message.getTransactionId();
+
+        Optional<Transaction> resulttx = Optional.
+                ofNullable(transactionRepository.findByTranscationId(transactionId));
+
+        Transaction transaction = resulttx.get();
+        if (message.getStatus().equals(Transaction.Status.ACCEPTED)){
+            transaction.setStatus(Transaction.Status.ACCEPTED);
+            transactionRepository.save(transaction);
         }
     }
 }
