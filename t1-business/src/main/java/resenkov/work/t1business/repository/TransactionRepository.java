@@ -17,5 +17,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             LocalDateTime end
     );
 
+    int countByAccountAndStatus(Account account, Transaction.Status status);
+
     Transaction findByTranscationId(Long id);
 }

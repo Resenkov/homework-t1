@@ -1,13 +1,33 @@
-CREATE TYPE account_status AS ENUM ('ARRESTED', 'BLOCKED', 'CLOSED', 'OPEN');
-CREATE TYPE account_balance_type AS ENUM ('DEBIT', 'CREDIT');
-CREATE TYPE transaction_status AS ENUM ('ACCEPTED', 'REJECTED', 'BLOCKED', 'CANCELLED', 'REQUESTED');
+CREATE TYPE client_status AS ENUM (
+    'ACTIVE',
+    'BLOCKED'
+);
+
+CREATE TYPE account_status AS ENUM (
+    'ARRESTED',
+    'BLOCKED',
+    'CLOSED',
+    'OPEN'
+);
+CREATE TYPE account_balance_type AS ENUM (
+    'DEBIT',
+    'CREDIT'
+);
+CREATE TYPE transaction_status AS ENUM (
+    'ACCEPTED',
+    'REJECTED',
+    'BLOCKED',
+    'CANCELLED',
+    'REQUESTED'
+);
 
 CREATE TABLE client (
     id BIGSERIAL PRIMARY KEY,
     last_name VARCHAR(255) NOT NULL,
     first_name VARCHAR(255) NOT NULL,
     middle_name VARCHAR(255) NOT NULL,
-    client_id BIGINT
+    client_id BIGINT,
+    status client_status NOT NULL
 );
 
 CREATE TABLE account (

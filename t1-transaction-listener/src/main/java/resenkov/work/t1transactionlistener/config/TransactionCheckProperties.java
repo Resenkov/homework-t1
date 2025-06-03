@@ -12,4 +12,5 @@ import org.springframework.stereotype.Component;
 public class TransactionCheckProperties {
     private long windowSeconds;
     private int maxTx;
+    private int rejectedThreshold;
 }

@@ -71,6 +71,21 @@ public class AcceptedTransactionListenerService {
             return;
         }
 
+        int rejectedCount = transactionRepository.countByAccountAndStatus(account, Transaction.Status.REJECTED);
+        if (rejectedCount >= properties.getRejectedThreshold()) {
+            account.setStatus(Account.Status.ARRESTED);
+            accountRepository.save(account);
+
+            Transaction trx = new Transaction();
+            trx.setTranscationId(transactionId);
+            trx.setAccount(account);
+            trx.setStatus(Transaction.Status.REJECTED);
+            trx.setSum(message.getAmount());
+            trx.setCreatedAt(messageTime);
+            transactionRepository.save(trx);
+            return;
+        }
+
         LocalDateTime windowStart = messageTime.minusSeconds(properties.getWindowSeconds());
         int txCount = transactionRepository.countByAccountAndCreatedAtBetween(
                 account, windowStart, messageTime);

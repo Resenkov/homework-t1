@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="AmplicodeJpaIdeaProjectConfig">
+  <component name="AmplicodeJpaIdeaProjectConfig" newRepositoryParent="org.springframework.data.jpa.repository.JpaRepository">
     <option name="defaultUnitInitialized" value="true" />
     <option name="renamerInitialized" value="true" />
+    <option name="reverseEngineeringLastDbConnectionId" value="daf2e666-05ec-4ece-b7a1-e6270848026f__blacklist_public" />
+    <option name="reLastEntityCreationPackage" value="t1-business/src/main/java/resenkov/work/t1checktransaction/entity" />
   </component>
 </project>

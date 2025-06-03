@@ -22,6 +22,14 @@ public class Client {
 
     private Long clientId;
 
+    public enum Status{
+        BLOCKED,
+        ACTIVE
+    }
+
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
     @NotNull
     private String firstName;
     @NotNull
