@@ -12,7 +12,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/logs")
 public class DataLogController {
-    private DataSourceErrorLogService dataSourceErrorLogService;
+    private final DataSourceErrorLogService dataSourceErrorLogService;
+
+    public DataLogController(DataSourceErrorLogService dataSourceErrorLogService) {
+        this.dataSourceErrorLogService = dataSourceErrorLogService;
+    }
 
     @GetMapping
     public ResponseEntity<List<DataSourceErrorLog>> findAll(){
