@@ -96,6 +96,7 @@ public class DataInitializer {
     /**
      * 1) Отправка одной транзакции, которая будет принята (ACCEPTED).
      */
+
     private void sendAcceptedTransaction(Account account, Client client) {
         Long txId = System.currentTimeMillis() + account.getAccountId() * 10;
         BigDecimal amount = BigDecimal.valueOf(100).setScale(2, BigDecimal.ROUND_HALF_UP);

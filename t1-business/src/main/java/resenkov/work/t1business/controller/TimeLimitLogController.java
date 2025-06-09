@@ -5,8 +5,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import resenkov.work.t1business.entity.TimeLimitLog;
 import resenkov.work.t1business.service.TimeLimitLogService;
+import resenkov.work.t1metricsstarter.entity.TimeLimitLog;
 
 
 import java.util.List;

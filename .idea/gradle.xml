@@ -10,6 +10,7 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/t1-business" />
             <option value="$PROJECT_DIR$/t1-check-transaction" />
+            <option value="$PROJECT_DIR$/t1-metrics-starter" />
             <option value="$PROJECT_DIR$/t1-transaction-listener" />
           </set>
         </option>
