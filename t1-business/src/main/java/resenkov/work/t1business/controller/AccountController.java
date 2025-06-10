@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import resenkov.work.t1business.entity.Account;
 import resenkov.work.t1business.service.AccountService;
+import resenkov.work.t1entity.entity.Account;
 
 
 import java.util.List;

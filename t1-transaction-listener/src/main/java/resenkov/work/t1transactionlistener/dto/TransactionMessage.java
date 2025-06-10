@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import resenkov.work.t1business.entity.Transaction;
+import resenkov.work.t1entity.entity.Transaction;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

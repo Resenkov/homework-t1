@@ -8,15 +8,16 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = {
-		"resenkov.work.t1business.repository",
+		"resenkov.work.t1entity.repository",
 		"resenkov.work.t1metricsstarter.repository"
 })
 @EntityScan(basePackages = {
-		"resenkov.work.t1business.entity",
+		"resenkov.work.t1entity.entity",
 		"resenkov.work.t1metricsstarter.entity"
 })
 @ComponentScan(basePackages = {
 		"resenkov.work.t1business",
+		"resenkov.work.t1entity",
 		"resenkov.work.t1metricsstarter"
 })
 public class T1BusinessApplication {

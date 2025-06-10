@@ -1,58 +1,72 @@
 package resenkov.work.t1unlockaccount.service;
 
-
-import lombok.extern.log4j.Log4j2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import resenkov.work.t1business.entity.Account;
-import resenkov.work.t1business.entity.Client;
-import resenkov.work.t1business.repository.AccountRepository;
-import resenkov.work.t1business.repository.ClientRepository;
-import resenkov.work.t1checktransaction.entity.Blacklist;
-import resenkov.work.t1unlockaccount.repository.UnlockAccountRepository;
-import resenkov.work.t1unlockaccount.repository.UnlockClientRepository;
+import resenkov.work.t1entity.entity.Account;
+import resenkov.work.t1entity.entity.Client;
+import resenkov.work.t1entity.repository.AccountRepository;
+import resenkov.work.t1entity.repository.ClientRepository;
+import resenkov.work.t1unlockaccount.config.UnlockDecisionMaker;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@Transactional
-@Log4j2
 public class UnlockService {
+    private static final Logger logger = LoggerFactory.getLogger(UnlockService.class);
+
     private final ClientRepository clientRepository;
-    private final UnlockClientRepository unlockClientRepository;
-    private final UnlockAccountRepository unlockAccountRepository;
     private final AccountRepository accountRepository;
+    private final UnlockDecisionMaker decisionMaker;
 
-    public UnlockService(ClientRepository clientRepository, UnlockClientRepository unlockClientRepository, UnlockAccountRepository unlockAccountRepository, AccountRepository accountRepository) {
+    public UnlockService(ClientRepository clientRepository,
+                         AccountRepository accountRepository,
+                         UnlockDecisionMaker decisionMaker) {
         this.clientRepository = clientRepository;
-        this.unlockClientRepository = unlockClientRepository;
-        this.unlockAccountRepository = unlockAccountRepository;
         this.accountRepository = accountRepository;
+        this.decisionMaker = decisionMaker;
     }
 
-    public int unlockClients(int limit) {
-        List<Blacklist> batch = unlockClientRepository.findRandomBlacklistEntries(limit);
-        batch.forEach(this::unlockOneClient);
-        return batch.size();
-    }
+    public List<Long> unlockClients(List<Long> clientIds) {
+        List<Client> clientsToUpdate = new ArrayList<>();
+        List<Long> unlockedIds = new ArrayList<>();
 
-    public int unlockAccounts(int limit) {
-        List<Account> batch = unlockAccountRepository.findBlockedAccountsRandomly(limit);
-        batch.forEach(acc -> acc.setStatus(Account.Status.OPEN));
-        accountRepository.saveAll(batch);
-        log.info("Unlocked {} accounts", batch.size());
-        return batch.size();
-    }
-
-    private void unlockOneClient(Blacklist b) {
-        clientRepository.findByClientId(b.getClientId())
-                .ifPresentOrElse(client -> {
+        for (Long id : clientIds) {
+            clientRepository.findById(id).ifPresent(client -> {
+                if (client.getStatus() == Client.Status.BLOCKED && decisionMaker.shouldUnlock()) {
                     client.setStatus(Client.Status.ACTIVE);
-                    log.info("Unlocking client with id {}", b.getClientId());
-                    clientRepository.save(client);
-                    unlockClientRepository.delete(b);
-                }, () -> {
-                    log.warn("Client {} not found in main DB", b.getClientId());
-                });
+                    clientsToUpdate.add(client);
+                    unlockedIds.add(id);
+                }
+            });
+        }
+
+        if (!clientsToUpdate.isEmpty()) {
+            clientRepository.saveAll(clientsToUpdate);
+            logger.info("Unlocked {} clients", unlockedIds.size());
+        }
+        return unlockedIds;
+    }
+
+    public List<Long> unlockAccounts(List<Long> accountIds) {
+        List<Account> accountsToUpdate = new ArrayList<>();
+        List<Long> unlockedIds = new ArrayList<>();
+
+        for (Long id : accountIds) {
+            accountRepository.findById(id).ifPresent(account -> {
+                if (account.getStatus() == Account.Status.ARRESTED && decisionMaker.shouldUnlock()) {
+                    account.setStatus(Account.Status.OPEN);
+                    accountsToUpdate.add(account);
+                    unlockedIds.add(id);
+                }
+            });
+        }
+
+        if (!accountsToUpdate.isEmpty()) {
+            accountRepository.saveAll(accountsToUpdate);
+            logger.info("Unlocked {} accounts", unlockedIds.size());
+        }
+        return unlockedIds;
     }
 }

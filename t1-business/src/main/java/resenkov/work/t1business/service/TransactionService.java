@@ -2,8 +2,8 @@ package resenkov.work.t1business.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import resenkov.work.t1business.entity.Transaction;
-import resenkov.work.t1business.repository.TransactionRepository;
+import resenkov.work.t1entity.entity.Transaction;
+import resenkov.work.t1entity.repository.TransactionRepository;
 
 
 import java.util.List;

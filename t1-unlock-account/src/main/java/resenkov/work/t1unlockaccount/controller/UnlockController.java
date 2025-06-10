@@ -1,38 +1,68 @@
 package resenkov.work.t1unlockaccount.controller;
 
-
-import org.springframework.beans.factory.annotation.Value;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import resenkov.work.t1unlockaccount.service.UnlockService;
 
+import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
+
 @RestController
-@RequestMapping("/unlock")
+@RequestMapping("/api/unlock")
 public class UnlockController {
     private final UnlockService unlockService;
-
-    @Value("${unlock.batch-size.clients:3}")
-    private int clientBatchSize;
-    @Value("${unlock.batch-size.accounts:3}")
-    private int accountBatchSize;
 
     public UnlockController(UnlockService unlockService) {
         this.unlockService = unlockService;
     }
 
     @PostMapping("/clients")
-    public ResponseEntity<String> unlockClients() {
-        int count = unlockService.unlockClients(clientBatchSize);
-        return ResponseEntity
-                .ok("Unlocked " + count + " clients");
+    public ResponseEntity<UnlockResponse> unlockClients(@RequestBody UnlockRequest request) {
+        if (request.getIds() == null || request.getIds().isEmpty()) {
+            return ResponseEntity.badRequest().body(new UnlockResponse("Client IDs required"));
+        }
+
+        List<Long> unlockedIds = unlockService.unlockClients(request.getIds());
+        return ResponseEntity.ok(new UnlockResponse(unlockedIds));
     }
 
     @PostMapping("/accounts")
-    public ResponseEntity<String> unlockAccounts() {
-        int count = unlockService.unlockAccounts(accountBatchSize);
-        return ResponseEntity
-                .ok("Unlocked " + count + " accounts");
+    public ResponseEntity<UnlockResponse> unlockAccounts(@RequestBody UnlockRequest request) {
+        if (request.getIds() == null || request.getIds().isEmpty()) {
+            return ResponseEntity.badRequest().body(new UnlockResponse("Account IDs required"));
+        }
+
+        List<Long> unlockedIds = unlockService.unlockAccounts(request.getIds());
+        return ResponseEntity.ok(new UnlockResponse(unlockedIds));
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UnlockRequest {
+        private List<Long> ids;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UnlockResponse {
+        private String message;
+        private List<Long> unlockedIds;
+        private Instant timestamp = Instant.now();
+
+        public UnlockResponse(List<Long> unlockedIds) {
+            this.unlockedIds = unlockedIds;
+            this.message = "Unlocked " + unlockedIds.size() + " items";
+        }
+
+        public UnlockResponse(String error) {
+            this.message = error;
+            this.unlockedIds = Collections.emptyList();
+        }
     }
 }
