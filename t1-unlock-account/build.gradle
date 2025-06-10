@@ -33,7 +33,5 @@ dependencies {
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	annotationProcessor 'org.projectlombok:lombok'
-	implementation project(":t1-business")
-	implementation project(":t1-check-transaction")
-
+	implementation("resenkov.work:t1-entity")
 }

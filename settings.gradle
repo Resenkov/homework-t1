@@ -1,6 +1,7 @@
 rootProject.name = "homework-t1"
-include ("t1-business")
-include ("t1-transaction-listener")
-include ("t1-check-transaction")
-include ("t1-metrics-starter")
-include ("t1-unlock-account")
+includeBuild ("t1-business")
+includeBuild ("t1-transaction-listener")
+includeBuild ("t1-check-transaction")
+includeBuild ("t1-metrics-starter")
+includeBuild ("t1-unlock-account")
+includeBuild ("t1-entity")

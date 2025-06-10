@@ -1,9 +1,8 @@
-package resenkov.work.t1business.entity;
+package resenkov.work.t1entity.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import resenkov.work.t1business.entity.Account;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

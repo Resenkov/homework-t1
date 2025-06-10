@@ -11,10 +11,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import resenkov.work.t1business.config.TransactionCheckProperties;
 import resenkov.work.t1business.dto.TransactionMessage;
-import resenkov.work.t1business.entity.Account;
-import resenkov.work.t1business.entity.Client;
-import resenkov.work.t1business.repository.AccountRepository;
-import resenkov.work.t1business.repository.ClientRepository;
+import resenkov.work.t1entity.entity.Account;
+import resenkov.work.t1entity.entity.Client;
+import resenkov.work.t1entity.repository.AccountRepository;
+import resenkov.work.t1entity.repository.ClientRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

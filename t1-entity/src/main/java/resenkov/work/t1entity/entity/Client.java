@@ -1,4 +1,4 @@
-package resenkov.work.t1business.entity;
+package resenkov.work.t1entity.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

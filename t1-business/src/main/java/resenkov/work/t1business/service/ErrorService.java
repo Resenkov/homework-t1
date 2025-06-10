@@ -2,7 +2,7 @@ package resenkov.work.t1business.service;
 
 import org.springframework.stereotype.Service;
 
-import resenkov.work.t1business.repository.AccountRepository;
+import resenkov.work.t1entity.repository.AccountRepository;
 import resenkov.work.t1metricsstarter.aop.LogDataError;
 import resenkov.work.t1metricsstarter.aop.Metric;
 

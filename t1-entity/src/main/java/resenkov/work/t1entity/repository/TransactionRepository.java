@@ -1,10 +1,9 @@
-package resenkov.work.t1business.repository;
+package resenkov.work.t1entity.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import resenkov.work.t1business.entity.Account;
-import resenkov.work.t1business.entity.Transaction;
-
+import resenkov.work.t1entity.entity.Account;
+import resenkov.work.t1entity.entity.Transaction;
 
 import java.time.LocalDateTime;
 

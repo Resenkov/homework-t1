@@ -6,8 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
-import resenkov.work.t1business.entity.Transaction;
 import resenkov.work.t1business.service.TransactionService;
+import resenkov.work.t1entity.entity.Transaction;
 
 
 import java.util.List;
