@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface AccountRepository extends JpaRepository<Account, Long> {
     Optional<Account> findByAccountId(Long accountId);
     List<Account> findByStatus(Account.Status status, Pageable pageable);
+    long countByStatus(Account.Status status);
 }

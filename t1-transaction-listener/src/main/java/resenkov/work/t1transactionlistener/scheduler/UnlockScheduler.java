@@ -8,7 +8,9 @@ import resenkov.work.t1entity.entity.Account;
 import resenkov.work.t1entity.entity.Client;
 import resenkov.work.t1transactionlistener.client.UnlockServiceClient;
 import resenkov.work.t1transactionlistener.config.UnlockProperties;
+import resenkov.work.t1transactionlistener.metrics.UnlockMetrics;
 import resenkov.work.t1transactionlistener.service.BlockedEntitiesService;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,13 +21,26 @@ public class UnlockScheduler {
     private final BlockedEntitiesService blockedEntitiesService;
     private final UnlockServiceClient unlockServiceClient;
     private final UnlockProperties properties;
+    private final UnlockMetrics unlockMetrics;
 
     public UnlockScheduler(BlockedEntitiesService blockedEntitiesService,
                            UnlockServiceClient unlockServiceClient,
-                           UnlockProperties properties) {
+                           UnlockProperties properties,
+                           UnlockMetrics unlockMetrics) {
         this.blockedEntitiesService = blockedEntitiesService;
         this.unlockServiceClient = unlockServiceClient;
         this.properties = properties;
+        this.unlockMetrics = unlockMetrics;
+    }
+
+    @Scheduled(fixedRateString = "${unlock.period}")
+    public void scheduledUnlockClients() {
+        unlockClientsTask();
+    }
+
+    @Scheduled(fixedRateString = "${unlock.period}")
+    public void scheduledUnlockAccounts() {
+        unlockAccountsTask();
     }
 
     public void unlockClientsTask() {
@@ -41,6 +56,7 @@ public class UnlockScheduler {
                         .collect(Collectors.toList());
 
                 unlockServiceClient.requestClientUnlock(clientIds);
+                unlockMetrics.incrementClientUnlock(); // Инкремент счетчика
                 logger.info("Sent unlock request for {} clients", clientIds.size());
             } else {
                 logger.info("No blocked clients found to unlock");
@@ -63,6 +79,7 @@ public class UnlockScheduler {
                         .collect(Collectors.toList());
 
                 unlockServiceClient.requestAccountUnlock(accountIds);
+                unlockMetrics.incrementAccountUnlock(); // Инкремент счетчика
                 logger.info("Sent unlock request for {} accounts", accountIds.size());
             } else {
                 logger.info("No arrested accounts found to unlock");
@@ -70,15 +87,5 @@ public class UnlockScheduler {
         } catch (Exception e) {
             logger.error("Error during accounts unlock task", e);
         }
-    }
-
-    @Scheduled(fixedRateString = "${unlock.period}")
-    public void scheduledUnlockClients() {
-        unlockClientsTask();
-    }
-
-    @Scheduled(fixedRateString = "${unlock.period}")
-    public void scheduledUnlockAccounts() {
-        unlockAccountsTask();
     }
 }

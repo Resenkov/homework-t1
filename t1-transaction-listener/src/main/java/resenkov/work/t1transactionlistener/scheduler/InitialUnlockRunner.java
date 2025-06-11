@@ -17,7 +17,6 @@ public class InitialUnlockRunner implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
         unlockScheduler.unlockClientsTask();
         unlockScheduler.unlockAccountsTask();
-
         System.out.println("Initial unlock requests sent successfully!");
     }
 }

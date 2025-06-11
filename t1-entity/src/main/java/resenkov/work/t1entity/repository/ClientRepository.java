@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface ClientRepository extends JpaRepository<Client, Long> {
     Optional<Client> findByClientId(Long clientId);
     List<Client> findByStatus(Client.Status status, Pageable pageable);
+    long countByStatus(Client.Status status);
 }
