@@ -41,11 +41,10 @@ public class BlockedMetricsService {
                 .description("Number of arrested accounts")
                 .register(meterRegistry);
 
-        // Первоначальное обновление
         updateMetrics();
     }
 
-    @Scheduled(fixedRate = 60000) // Обновление каждую минуту
+    @Scheduled(fixedRate = 60000)
     public void updateMetrics() {
         blockedClientsCount = clientRepository.countByStatus(Client.Status.BLOCKED);
         arrestedAccountsCount = accountRepository.countByStatus(Account.Status.ARRESTED);
