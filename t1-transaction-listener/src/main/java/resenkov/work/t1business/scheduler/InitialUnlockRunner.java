@@ -1,4 +1,4 @@
-package resenkov.work.t1transactionlistener.scheduler;
+package resenkov.work.t1business.scheduler;
 
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;

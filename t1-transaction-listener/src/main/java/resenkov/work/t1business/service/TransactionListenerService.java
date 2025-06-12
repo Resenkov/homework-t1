@@ -1,4 +1,4 @@
-package resenkov.work.t1transactionlistener.service;
+package resenkov.work.t1business.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,8 +19,8 @@ import resenkov.work.t1entity.entity.Transaction;
 import resenkov.work.t1entity.repository.AccountRepository;
 import resenkov.work.t1entity.repository.ClientRepository;
 import resenkov.work.t1entity.repository.TransactionRepository;
-import resenkov.work.t1transactionlistener.config.WebClientConfig;
-import resenkov.work.t1transactionlistener.dto.TransactionMessage;
+import resenkov.work.t1business.config.WebClientConfig;
+import resenkov.work.t1business.dto.TransactionMessage;
 
 import javax.net.ssl.SSLException;
 import java.math.BigDecimal;

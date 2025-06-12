@@ -1,4 +1,4 @@
-package resenkov.work.t1transactionlistener.dto;
+package resenkov.work.t1business.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

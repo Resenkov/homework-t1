@@ -1,4 +1,4 @@
-package resenkov.work.t1transactionlistener.config;
+package resenkov.work.t1business.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

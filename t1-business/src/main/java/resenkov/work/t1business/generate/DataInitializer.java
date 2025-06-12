@@ -80,7 +80,7 @@ public class DataInitializer {
         sendAccountNotFoundTransaction();
     }
 
-    private Account createAccount(Client client, Account.Status status, double balance) {
+    public Account createAccount(Client client, Account.Status status, double balance) {
         Account acc = new Account();
         acc.setClient(client);
         acc.setStatus(status);
@@ -97,7 +97,7 @@ public class DataInitializer {
      * 1) Отправка одной транзакции, которая будет принята (ACCEPTED).
      */
 
-    private void sendAcceptedTransaction(Account account, Client client) {
+    public void sendAcceptedTransaction(Account account, Client client) {
         Long txId = System.currentTimeMillis() + account.getAccountId() * 10;
         BigDecimal amount = BigDecimal.valueOf(100).setScale(2, BigDecimal.ROUND_HALF_UP);
         log.info("=== Отправляем ACCEPTED транзакцию: txId={}, accountId={}, clientId={}, amount={}",
@@ -108,7 +108,7 @@ public class DataInitializer {
     /**
      * 2) Отправка одной транзакции, сумма которой превышает баланс — будет REJECTED.
      */
-    private void sendRejectedTransaction(Account account, Client client) {
+    public void sendRejectedTransaction(Account account, Client client) {
         Long txId = System.currentTimeMillis() + account.getAccountId() * 20;
         BigDecimal amount = account.getBalance().add(BigDecimal.valueOf(-50000)); // Явное сильное превышение
         log.info("=== Отправляем REJECTED транзакцию: txId={}, accountId={}, clientId={}, amount={}",
@@ -122,7 +122,7 @@ public class DataInitializer {
      * чтобы превысить допустимое количество (props.getMaxTx()) и получить BLOCKED.
      * Все суммы будут небольшими, чтобы баланс не стал отрицательным раньше.
      */
-    private void sendBlockedTransactions(Account account, Client client) {
+    public void sendBlockedTransactions(Account account, Client client) {
         int maxTx = props.getMaxTx();
         log.info("=== Отправляем {}+1 транзакций, чтобы получить BLOCKED (accountId={}, clientId={})", maxTx, account.getAccountId(), client.getClientId());
         for (int i = 0; i < maxTx + 1; i++) {
@@ -136,7 +136,7 @@ public class DataInitializer {
     /**
      * 4) Отправка транзакции по закрытому счету — будет проигнорировано (Account not OPEN).
      */
-    private void sendIgnoredTransaction(Account account, Client client) {
+    public void sendIgnoredTransaction(Account account, Client client) {
         Long txId = System.currentTimeMillis() + account.getAccountId() * 30;
         BigDecimal amount = BigDecimal.valueOf(50).setScale(2, BigDecimal.ROUND_HALF_UP);
         log.info("=== Отправляем IGNORED транзакцию (счет CLOSED): txId={}, accountId={}, clientId={}, amount={}",
@@ -147,7 +147,7 @@ public class DataInitializer {
     /**
      * 5) Отправка транзакции по несуществующему счету — будет игнор (Account not found).
      */
-    private void sendAccountNotFoundTransaction() {
+    public void sendAccountNotFoundTransaction() {
         Long fakeAccountId = 999_999L;
         Long txId = System.currentTimeMillis() + fakeAccountId;
         BigDecimal amount = BigDecimal.valueOf(10).setScale(2, BigDecimal.ROUND_HALF_UP);
@@ -155,7 +155,7 @@ public class DataInitializer {
         sendTransactionMessage(txId, fakeAccountId, 1L, amount);
     }
 
-    private void sendTransactionMessage(Long txId, Long accountId, Long clientId, BigDecimal amount) {
+    public void sendTransactionMessage(Long txId, Long accountId, Long clientId, BigDecimal amount) {
         TransactionMessage msg = new TransactionMessage(
                 txId, accountId, clientId, amount, LocalDateTime.now()
         );

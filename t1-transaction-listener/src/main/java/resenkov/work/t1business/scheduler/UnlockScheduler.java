@@ -1,4 +1,4 @@
-package resenkov.work.t1transactionlistener.scheduler;
+package resenkov.work.t1business.scheduler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,10 +6,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import resenkov.work.t1entity.entity.Account;
 import resenkov.work.t1entity.entity.Client;
-import resenkov.work.t1transactionlistener.client.UnlockServiceClient;
-import resenkov.work.t1transactionlistener.config.UnlockProperties;
-import resenkov.work.t1transactionlistener.metrics.UnlockMetrics;
-import resenkov.work.t1transactionlistener.service.BlockedEntitiesService;
+import resenkov.work.t1business.client.UnlockServiceClient;
+import resenkov.work.t1business.config.UnlockProperties;
+import resenkov.work.t1business.metrics.UnlockMetrics;
+import resenkov.work.t1business.service.BlockedEntitiesService;
 
 import java.util.List;
 import java.util.stream.Collectors;

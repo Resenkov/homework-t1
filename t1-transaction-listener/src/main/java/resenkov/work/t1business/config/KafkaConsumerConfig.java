@@ -1,4 +1,4 @@
-package resenkov.work.t1transactionlistener.config;
+package resenkov.work.t1business.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -10,7 +10,7 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import resenkov.work.t1transactionlistener.dto.TransactionMessage;
+import resenkov.work.t1business.dto.TransactionMessage;
 
 import java.util.HashMap;
 import java.util.Map;

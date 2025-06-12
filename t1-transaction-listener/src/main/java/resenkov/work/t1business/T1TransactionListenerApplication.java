@@ -1,4 +1,4 @@
-package resenkov.work.t1transactionlistener;
+package resenkov.work.t1business;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -17,7 +17,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 })
 @ComponentScan(basePackages = {
         "resenkov.work.t1entity",
-        "resenkov.work.t1transactionlistener"
+        "resenkov.work.t1business"
 })
 @EnableScheduling
 public class T1TransactionListenerApplication {

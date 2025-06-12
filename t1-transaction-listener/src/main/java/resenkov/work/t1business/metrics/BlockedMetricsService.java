@@ -1,4 +1,4 @@
-package resenkov.work.t1transactionlistener.metrics;
+package resenkov.work.t1business.metrics;
 
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
