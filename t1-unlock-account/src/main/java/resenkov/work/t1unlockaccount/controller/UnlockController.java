@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import resenkov.work.t1unlockaccount.service.UnlockService;
+import resenkov.work.t1unlockaccount.UnlockService;
 
 import java.time.Instant;
 import java.util.Collections;
