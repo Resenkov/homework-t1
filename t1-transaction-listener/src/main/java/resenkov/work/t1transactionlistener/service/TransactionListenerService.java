@@ -13,12 +13,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import resenkov.work.t1business.entity.Account;
-import resenkov.work.t1business.entity.Client;
-import resenkov.work.t1business.entity.Transaction;
-import resenkov.work.t1business.repository.AccountRepository;
-import resenkov.work.t1business.repository.ClientRepository;
-import resenkov.work.t1business.repository.TransactionRepository;
+import resenkov.work.t1entity.entity.Account;
+import resenkov.work.t1entity.entity.Client;
+import resenkov.work.t1entity.entity.Transaction;
+import resenkov.work.t1entity.repository.AccountRepository;
+import resenkov.work.t1entity.repository.ClientRepository;
+import resenkov.work.t1entity.repository.TransactionRepository;
 import resenkov.work.t1transactionlistener.config.WebClientConfig;
 import resenkov.work.t1transactionlistener.dto.TransactionMessage;
 

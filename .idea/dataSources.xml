@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="blacklist@localhost" uuid="daf2e666-05ec-4ece-b7a1-e6270848026f">
+    <data-source source="LOCAL" name="t1_task4@localhost" uuid="daf2e666-05ec-4ece-b7a1-e6270848026f">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://localhost:5432/blacklist</jdbc-url>
+      <jdbc-url>jdbc:postgresql://localhost:5432/t1_task4</jdbc-url>
       <jdbc-additional-properties>
         <property name="com.intellij.clouds.kubernetes.db.host.port" />
         <property name="com.intellij.clouds.kubernetes.db.enabled" value="false" />

@@ -4,14 +4,52 @@
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
+        <compositeConfiguration>
+          <compositeBuild compositeDefinitionSource="SCRIPT">
+            <builds>
+              <build path="$PROJECT_DIR$/t1-business" name="t1-business">
+                <projects>
+                  <project path="$PROJECT_DIR$/t1-business" />
+                </projects>
+              </build>
+              <build path="$PROJECT_DIR$/t1-check-transaction" name="t1-check-transaction">
+                <projects>
+                  <project path="$PROJECT_DIR$/t1-check-transaction" />
+                </projects>
+              </build>
+              <build path="$PROJECT_DIR$/t1-entity" name="t1-entity">
+                <projects>
+                  <project path="$PROJECT_DIR$/t1-entity" />
+                </projects>
+              </build>
+              <build path="$PROJECT_DIR$/t1-metrics-starter" name="t1-metrics-starter">
+                <projects>
+                  <project path="$PROJECT_DIR$/t1-metrics-starter" />
+                </projects>
+              </build>
+              <build path="$PROJECT_DIR$/t1-transaction-listener" name="t1-transaction-listener">
+                <projects>
+                  <project path="$PROJECT_DIR$/t1-transaction-listener" />
+                </projects>
+              </build>
+              <build path="$PROJECT_DIR$/t1-unlock-account" name="t1-unlock-account">
+                <projects>
+                  <project path="$PROJECT_DIR$/t1-unlock-account" />
+                </projects>
+              </build>
+            </builds>
+          </compositeBuild>
+        </compositeConfiguration>
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/t1-business" />
             <option value="$PROJECT_DIR$/t1-check-transaction" />
+            <option value="$PROJECT_DIR$/t1-entity" />
             <option value="$PROJECT_DIR$/t1-metrics-starter" />
             <option value="$PROJECT_DIR$/t1-transaction-listener" />
+            <option value="$PROJECT_DIR$/t1-unlock-account" />
           </set>
         </option>
       </GradleProjectSettings>

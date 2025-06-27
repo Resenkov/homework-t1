@@ -7,12 +7,12 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import resenkov.work.t1business.entity.Account;
-import resenkov.work.t1business.entity.Client;
-import resenkov.work.t1business.entity.Transaction;
-import resenkov.work.t1business.repository.AccountRepository;
-import resenkov.work.t1business.repository.ClientRepository;
-import resenkov.work.t1business.repository.TransactionRepository;
+import resenkov.work.t1entity.entity.Account;
+import resenkov.work.t1entity.entity.Client;
+import resenkov.work.t1entity.entity.Transaction;
+import resenkov.work.t1entity.repository.AccountRepository;
+import resenkov.work.t1entity.repository.ClientRepository;
+import resenkov.work.t1entity.repository.TransactionRepository;
 import resenkov.work.t1transactionlistener.config.TransactionCheckProperties;
 import resenkov.work.t1transactionlistener.dto.TransactionMessage;
 
@@ -103,7 +103,7 @@ public class AcceptedTransactionListenerService {
     }
 
 
-    private TransactionMessage createResultMessage(TransactionMessage original, Transaction.Status status) {
+    public TransactionMessage createResultMessage(TransactionMessage original, Transaction.Status status) {
         TransactionMessage result = new TransactionMessage();
         result.setTransactionId(original.getTransactionId());
         result.setAccountId(original.getAccountId());
@@ -114,7 +114,7 @@ public class AcceptedTransactionListenerService {
         return result;
     }
 
-    private void sendNotification(TransactionMessage message) {
+    public void sendNotification(TransactionMessage message) {
         try {
             String payload = objectMapper.writeValueAsString(message);
             kafkaTemplate.send(RESULT_TOPIC, payload);

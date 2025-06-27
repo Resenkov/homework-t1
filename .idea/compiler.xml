@@ -5,10 +5,18 @@
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.38/57f8f5e02e92a30fd21b80cbd426a4172b5f8e29/lombok-1.18.38.jar" />
+        </processorPath>
+        <module name="homework-t1.t1-entity.main" />
+      </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/3.5.0/571cee41914166d639c56eac7d80fb35e8201325/spring-boot-configuration-processor-3.5.0.jar" />
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.38/57f8f5e02e92a30fd21b80cbd426a4172b5f8e29/lombok-1.18.38.jar" />
         </processorPath>
         <module name="homework-t1.t1-transaction-listener.main" />
+        <module name="homework-t1.t1-unlock-account.main" />
         <module name="homework-t1.t1-check-transaction.main" />
         <module name="homework-t1.t1-business.main" />
       </profile>
@@ -20,7 +28,7 @@
         <module name="homework-t1.t1-metrics-starter.main" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="17">
+    <bytecodeTargetLevel target="1.6">
       <module name="t1-transaction-listener" target="17" />
       <module name="t1-transaction-listener.main" target="17" />
       <module name="t1-transaction-listener.test" target="17" />
@@ -28,5 +36,30 @@
       <module name="t1-transcactionservice.main" target="17" />
       <module name="t1-transcactionservice.test" target="17" />
     </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="homework-t1.t1-business" options="-parameters" />
+      <module name="homework-t1.t1-business.main" options="-parameters" />
+      <module name="homework-t1.t1-business.test" options="-parameters" />
+      <module name="homework-t1.t1-check-transaction" options="-parameters" />
+      <module name="homework-t1.t1-check-transaction.main" options="-parameters" />
+      <module name="homework-t1.t1-check-transaction.test" options="-parameters" />
+      <module name="homework-t1.t1-entity" options="-parameters" />
+      <module name="homework-t1.t1-entity.main" options="-parameters" />
+      <module name="homework-t1.t1-entity.test" options="-parameters" />
+      <module name="homework-t1.t1-metrics-starter" options="-parameters" />
+      <module name="homework-t1.t1-metrics-starter.main" options="-parameters" />
+      <module name="homework-t1.t1-metrics-starter.test" options="-parameters" />
+      <module name="homework-t1.t1-transaction-listener" options="-parameters" />
+      <module name="homework-t1.t1-transaction-listener.main" options="-parameters" />
+      <module name="homework-t1.t1-transaction-listener.test" options="-parameters" />
+      <module name="homework-t1.t1-unlock-account" options="-parameters" />
+      <module name="homework-t1.t1-unlock-account.main" options="-parameters" />
+      <module name="homework-t1.t1-unlock-account.test" options="-parameters" />
+      <module name="t1-unlock-account" options="-parameters" />
+      <module name="t1-unlock-account.main" options="-parameters" />
+      <module name="t1-unlock-account.test" options="-parameters" />
+    </option>
   </component>
 </project>
